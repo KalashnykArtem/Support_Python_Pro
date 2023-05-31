@@ -14,8 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from dataclasses import dataclass, asdict
 import json
+from dataclasses import asdict, dataclass
 
 import requests
 from django.conf import settings
@@ -56,6 +56,8 @@ class Pokemon:
 # Simulate the CACHE
 # ============================================
 POKEMONS: dict[str, Pokemon] = {}
+
+
 def get_pokemon_from_api(name: str) -> Pokemon:
     url = settings.POKEAPI_BASE_URL + f"/{name}"
     response = requests.get(url)
@@ -84,7 +86,7 @@ def request_method(request, name: str):
     if request.method == "GET":
         return get_pokemon(name)
     elif request.method == "DELETE":
-	    return delete_pokemon(name)
+        return delete_pokemon(name)
 
 
 def get_pokemon(name: str):
@@ -98,7 +100,7 @@ def get_pokemon(name: str):
 def delete_pokemon(name: str):
     if name in POKEMONS:
         del POKEMONS[name]
-        return HttpResponse(f"{name} is removed from the cache")    
+        return HttpResponse(f"{name} is removed from the cache")
     else:
         return HttpResponse(f"{name} isn't in the cache")
 
@@ -120,7 +122,7 @@ def get_all_pokemons(request):
     for value in POKEMONS.values():
         all_pokemons.append(asdict(value))
     if all_pokemons == []:
-        all_pokemons = f"Cache is empty"
+        all_pokemons = "Cache is empty"
 
     return HttpResponse(
         content_type="application/json",
@@ -131,7 +133,7 @@ def get_all_pokemons(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/pokemon/<str:name>/", request_method),
-    # path("api/pokemon/<str:name>/", delete_pokemon),  
+    # path("api/pokemon/<str:name>/", delete_pokemon),
     path("api/pokemon/mobile/<str:name>/", get_pokemon_for_mobile),
     path("api/pokemon/", get_all_pokemons),
 ]
