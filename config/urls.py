@@ -18,12 +18,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-import core.urls
+from core.api import create_user
+
+# import examples.get_pokemon
+# import examples.roles
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/pokemon/<str:name>/", core.urls.request_method),
-    path("api/pokemon/mobile/<str:name>/", core.urls.get_pokemon_for_mobile),
-    path("api/pokemon/", core.urls.get_all_pokemons),
-    path("create-random-user", core.urls.create_random_user),
+    path("users/", create_user),
+    # path("api/pokemon/<str:name>/", examples.get_pokemon.request_method),
+    # path(
+    #     "api/pokemon/mobile/<str:name>/",
+    #     examples.get_pokemon.get_pokemon_for_mobile,
+    # ),
+    # path("api/pokemon/", examples.get_pokemon.get_all_pokemons),
+    # path("create-random-user", examples.roles.create_random_user),
 ]
