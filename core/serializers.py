@@ -18,6 +18,13 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def to_representation(self, instance):
+        return {
+            "id": instance.id,
+            "email": instance.email,
+            "role": instance.role,
+        }
+
 
 class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
