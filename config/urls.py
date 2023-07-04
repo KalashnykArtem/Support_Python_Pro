@@ -16,21 +16,12 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 
-from core.api import create_user
-
-# import examples.get_pokemon
-# import examples.roles
+from core.api import UserRegistrationAPIView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("users/", create_user),
-    # path("api/pokemon/<str:name>/", examples.get_pokemon.request_method),
-    # path(
-    #     "api/pokemon/mobile/<str:name>/",
-    #     examples.get_pokemon.get_pokemon_for_mobile,
-    # ),
-    # path("api/pokemon/", examples.get_pokemon.get_all_pokemons),
-    # path("create-random-user", examples.roles.create_random_user),
+    path("users/", UserRegistrationAPIView.as_view()),
+    path("auth/", include("authentication.urls")),
 ]
