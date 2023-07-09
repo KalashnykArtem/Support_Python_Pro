@@ -29,7 +29,10 @@ class TicketAssignSerializer(serializers.Serializer):
         return manager_id
 
     def assign(self, ticket: Ticket) -> Ticket:
-        ticket.manager_id = self.validated_data["manager_id"]
-        ticket.save()
+        if ticket.manager_id:
+            raise PermissionError("This ticket is already booked")
+        else:
+            ticket.manager_id = self.validated_data["manager_id"]
+            ticket.save()
 
         return ticket
