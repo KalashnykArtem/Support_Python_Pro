@@ -2,9 +2,8 @@ import json
 from random import choice, randint
 from string import ascii_letters
 
-from django.http import HttpResponse
-
 from core.models import User
+from django.http import HttpResponse
 
 # *****************************************************
 # All roles are hardcoded instead of beeing used in the database
