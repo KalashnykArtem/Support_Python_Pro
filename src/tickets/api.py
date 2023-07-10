@@ -1,17 +1,31 @@
+from django.db.models import Q
 from rest_framework.decorators import action
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from tickets.models import Ticket
 from tickets.permissions import IsOwner, RoleIsAdmin, RoleIsManager, RoleIsUser
 from tickets.serializers import TicketAssignSerializer, TicketSerializer
+from users.constants import Role
 
 # from tickets.services import AssignService
 
 
 class TicketAPIViewSet(ModelViewSet):
-    queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        all_tickets = Ticket.objects.all()
+
+        if user.role == Role.ADMIN:
+            return all_tickets
+        elif user.role == Role.MANAGER:
+            return all_tickets.filter(Q(manager=user) | Q(manager=None))
+        else:
+            # User's role fallback solution
+            return all_tickets.filter(user=user)
 
     def get_permissions(self):
         """
@@ -56,3 +70,22 @@ class TicketAPIViewSet(ModelViewSet):
         ticket = serializer.assign(ticket)
 
         return Response(TicketSerializer(ticket).data)
+
+    @action(detail=True, methods=["post"])
+    def reassign(self, request, pk):
+        ticket = self.get_object()
+        serializer = TicketAssignSerializer(
+            data={"manager_id": request.user.id}
+        )  # noqa: E501
+        serializer.is_valid()
+        ticket = serializer.assign(ticket)
+
+        return Response(TicketSerializer(ticket).data)
+
+
+class MessageListCreateAPIView(ListCreateAPIView):
+    serializer_class = TicketSerializer
+
+    def get_queryset(self):
+        # TODO: Start from here
+        raise NotImplementedError
