@@ -4,13 +4,18 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from tickets.models import Message, Ticket
-from tickets.permissions import IsOwner, RoleIsAdmin, RoleIsManager, RoleIsUser
+from tickets.permissions import (
+    IsNewManager,
+    IsOwner,
+    RoleIsAdmin,
+    RoleIsManager,
+    RoleIsUser,
+)
 from tickets.serializers import (
     MessageSerializer,
     TicketAssignSerializer,
@@ -54,7 +59,7 @@ class TicketAPIViewSet(ModelViewSet):
         elif self.action == "take":
             permission_classes = [RoleIsManager]
         elif self.action == "reassign":
-            permission_classes = [RoleIsAdmin]
+            permission_classes = [RoleIsAdmin, IsNewManager]
         else:
             permission_classes = []
 
@@ -87,14 +92,6 @@ class TicketAPIViewSet(ModelViewSet):
     def reassign(self, request, pk):
         ticket = self.get_object()
         new_manager_id = request.data["manager_id"]
-        get_all_users = User.objects.all()
-        if not get_all_users.filter(
-            Q(id=new_manager_id) & Q(role=Role.MANAGER)
-        ):  # noqa: E501
-            raise ValidationError(
-                {"error": "You can only enter an existing manager ID"}
-            )
-
         serializer = TicketAssignSerializer(
             data={"manager_id": new_manager_id}
         )  # noqa: E501
