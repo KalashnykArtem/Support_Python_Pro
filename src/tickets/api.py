@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db.models import Q
 
 # from django.http import Http404
@@ -113,7 +112,7 @@ class MessageListCreateAPIView(ListCreateAPIView):
         # ticket = get_object_or_404(
         #     Ticket.objects.all(), id=self.kwargs[self.lookup_field]
         # )
-        # if ticket.user != self.request.user and ticket.manager != self.request.user:
+        # if ticket.user != self.request.user and ticket.manager != self.request.user:  # noqa: E501
         #     raise Http404
 
         return Message.objects.filter(
