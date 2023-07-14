@@ -1,13 +1,26 @@
 from django.db.models import Q
+
+# from django.http import Http404
+from django.shortcuts import get_object_or_404
+from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from tickets.models import Ticket
-from tickets.permissions import IsOwner, RoleIsAdmin, RoleIsManager, RoleIsUser
-from tickets.serializers import TicketAssignSerializer, TicketSerializer
+from tickets.models import Message, Ticket
+from tickets.permissions import (
+    IsNewManager,
+    IsOwner,
+    RoleIsAdmin,
+    RoleIsManager,
+    RoleIsUser,
+)
+from tickets.serializers import (
+    MessageSerializer,
+    TicketAssignSerializer,
+    TicketSerializer,
+)
 from users.constants import Role
 from users.models import User
 
@@ -46,7 +59,7 @@ class TicketAPIViewSet(ModelViewSet):
         elif self.action == "take":
             permission_classes = [RoleIsManager]
         elif self.action == "reassign":
-            permission_classes = [RoleIsAdmin]
+            permission_classes = [RoleIsAdmin, IsNewManager]
         else:
             permission_classes = []
 
@@ -79,14 +92,6 @@ class TicketAPIViewSet(ModelViewSet):
     def reassign(self, request, pk):
         ticket = self.get_object()
         new_manager_id = request.data["manager_id"]
-        get_all_users = User.objects.all()
-        if not get_all_users.filter(
-            Q(id=new_manager_id) & Q(role=Role.MANAGER)
-        ):  # noqa: E501
-            raise ValidationError(
-                {"error": "You can only enter an existing manager ID"}
-            )
-
         serializer = TicketAssignSerializer(
             data={"manager_id": new_manager_id}
         )  # noqa: E501
@@ -97,8 +102,40 @@ class TicketAPIViewSet(ModelViewSet):
 
 
 class MessageListCreateAPIView(ListCreateAPIView):
-    serializer_class = TicketSerializer
+    serializer_class = MessageSerializer
+    lookup_field = "ticket_id"
 
     def get_queryset(self):
-        # TODO: Start from here
-        raise NotImplementedError
+        # ticket = get_object_or_404(
+        #     Ticket.objects.all(), id=self.kwargs[self.lookup_field]
+        # )
+        # if ticket.user != self.request.user and ticket.manager != self.request.user:  # noqa: E501
+        #     raise Http404
+
+        return Message.objects.filter(
+            Q(ticket__user=self.request.user)
+            | Q(ticket__manager=self.request.user),
+            ticket_id=self.kwargs[self.lookup_field],
+        )
+
+    @staticmethod
+    def get_ticket(user: User, ticket_id: int) -> Ticket:
+        """Get tickets for current user."""
+
+        tickets = Ticket.objects.filter(Q(user=user) | Q(manager=user))
+        return get_object_or_404(tickets, id=ticket_id)
+
+    def post(self, request, ticket_id: int):
+        ticket = self.get_ticket(request.user, ticket_id)
+        payload = {
+            "text": request.data["text"],
+            "ticket": ticket.id,
+        }
+        serializer = self.get_serializer(data=payload)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )

@@ -22,9 +22,7 @@ ROOT_DIR = SRC_DIR.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-a1$z1atcfp7ld27dom2&=j!*t_dj5rg9sh--4&xxynug*%3_5j"  # noqa: E501
-)
+SECRET_KEY = "django-insecure-a1$z1atcfp7ld27dom2&=j!*t_dj5rg9sh--4&xxynug*%3_5j"  # noqa: E501
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -154,6 +152,9 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
     ),
 }
 
