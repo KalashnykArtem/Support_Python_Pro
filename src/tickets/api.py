@@ -1,6 +1,6 @@
-from django.db.models import Q
+from time import sleep
 
-# from django.http import Http404
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import action
@@ -8,6 +8,8 @@ from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+# from django.http import Http404
+from config.celery import celery_app
 from tickets.models import Message, Ticket
 from tickets.permissions import (
     IsNewManager,
@@ -27,12 +29,21 @@ from users.models import User
 # from tickets.services import AssignService
 
 
+@celery_app.task
+def send_email():
+    print("📭 Sending email")
+    sleep(10)
+    print("✅ Email sent")
+
+
 class TicketAPIViewSet(ModelViewSet):
     serializer_class = TicketSerializer
 
     def get_queryset(self):
         user = self.request.user
         all_tickets = Ticket.objects.all()
+
+        send_email.delay()
 
         if user.role == Role.ADMIN:
             return all_tickets
