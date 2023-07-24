@@ -27,7 +27,7 @@ SECRET_KEY = "django-insecure-a1$z1atcfp7ld27dom2&=j!*t_dj5rg9sh--4&xxynug*%3_5j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -170,4 +170,4 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_URL = "redis://broker:6379/0"
